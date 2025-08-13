@@ -1,7 +1,22 @@
+import { db } from '../db';
+import { reviewsTable } from '../db/schema';
+import { eq, and } from 'drizzle-orm';
+
 export const deleteReview = async (userId: number, reviewId: number): Promise<boolean> => {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is deleting a review by the user.
-    // Should verify the review belongs to the user before allowing deletion.
-    // Returns true if successfully deleted, false if review not found or unauthorized.
-    return true;
+  try {
+    // Delete review only if it belongs to the user
+    const result = await db.delete(reviewsTable)
+      .where(and(
+        eq(reviewsTable.id, reviewId),
+        eq(reviewsTable.user_id, userId)
+      ))
+      .returning()
+      .execute();
+
+    // Return true if a review was deleted, false if no matching review found
+    return result.length > 0;
+  } catch (error) {
+    console.error('Review deletion failed:', error);
+    throw error;
+  }
 };
